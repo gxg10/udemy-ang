@@ -1,24 +1,40 @@
 import { Injectable } from "@angular/core";
-import { Http, Response } from "@angular/http";
 import { RecipeService } from "../recipes/recipe.service";
 import { Recipe } from "../recipes/recipe.model";
 import 'rxjs/Rx';
+import { HttpClient, HttpHeaders, HttpRequest, HttpParams } from "@angular/common/http";
 
 @Injectable()
 export class DataStorageService {
-    constructor(private http: Http,
+    constructor(private httpClient: HttpClient,
     private recipeService: RecipeService) {}
 
     storeRecipes() {
-    return this.http.put('https://ng-recipe-book-67a83.firebaseio.com/recipes.json', 
-        this.recipeService.getRecipes());
+        return this.httpClient.put('https://ng-recipe-book-67a83.firebaseio.com/recipes.json', 
+        this.recipeService.getRecipes(), {
+            observe: 'body'
+        });
     }
 
+    // const header =  new HttpHeaders().set('Authorization',
+    // 'Bearer asdasdasd');
+
+//     const req = new HttpRequest('PUT','https://ng-recipe-book-67a83.firebaseio.com/recipes.json',
+// this.recipeService.getRecipes(), {reportProgress: true, params: new HttpParams('auth')})
+
+    
+
     getRecipes() {
-        return this.http.get('https://ng-recipe-book-67a83.firebaseio.com/recipes.json')
+        // return this.httpClient.get<Recipe[]>('https://ng-recipe-book-67a83.firebaseio.com/recipes.json')
+        return this.httpClient.get<Recipe[]>('https://ng-recipe-book-67a83.firebaseio.com/recipes.json', 
+    {
+        observe: 'body',
+        responseType: 'json'
+    })
+
         .map(
-            (response: Response) => {
-                const recipes: Recipe[] = response.json();
+            (recipes) => {
+                console.log(recipes);
                 for (let recipe of recipes) {
                     if (!recipe['ingredients']) {
                         console.log(recipe);
@@ -26,6 +42,7 @@ export class DataStorageService {
                     }
                 }
                 return recipes;
+
             }
         )
         .subscribe(
